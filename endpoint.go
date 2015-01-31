@@ -5,8 +5,13 @@ import (
 	"net/http"
 )
 
+// Context is maps strings to arbitrary types
 type Context map[string]interface{}
+
+// Controller is a function that accepts a context and returns a handler.
 type Controller func(Context) http.Handler
+
+// Middleware is a function that accepts a context and a handler and returns a handler.
 type Middleware func(Context, http.Handler) http.Handler
 
 // Endpoint is an endpoint on the server.
@@ -17,7 +22,7 @@ type Endpoint struct {
 	Control Controller   // Control handles the final portion of the request
 }
 
-// GetHandler joins the middleware with the controller.
+// Handler joins the middleware with the controller.
 func (e Endpoint) Handler() http.Handler {
 	var mw []Middleware
 
