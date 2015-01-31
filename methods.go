@@ -3,7 +3,10 @@ package endpoint
 import "net/http"
 
 const (
-	GET  = "GET"
+	// GET request
+	GET = "GET"
+
+	// POST request
 	POST = "POST"
 )
 
