@@ -7,7 +7,7 @@ before_install:
     - go get golang.org/x/tools/cmd/cover
     
 install:
-    - go get github.com/GolangDorks/endpoint
+    - go get -d -v ./...
 
 script:
     - go test -cover
