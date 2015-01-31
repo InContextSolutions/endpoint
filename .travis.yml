@@ -1,0 +1,10 @@
+language: go
+
+go:
+    - tip
+
+script:
+    - go test -cover
+
+notifications:
+    email: false
