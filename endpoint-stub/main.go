@@ -3,7 +3,9 @@ package main
 import (
 	"bytes"
 	"flag"
-	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
 	"text/template"
 )
 
@@ -12,27 +14,8 @@ var (
 	point  = flag.String("endpoint", "", "name of the endpoint")
 	path   = flag.String("path", "", "url path")
 	method = flag.Bool("post", false, "use POST (default is GET)")
+	output = flag.String("output", "", "output directory (default is current directory")
 )
-
-var endpointTemplate = `package {{.Package}}
-
-import (
-` + "\t" + `"github.com/GolangDorks/endpoint"
-` + "\t" + `"net/http"
-)
-
-// {{.Name}} accepts {{.Method}} requests.
-var {{.Name}} = endpoint.Endpoint{
-` + "\t" + `Path:   "{{.Path}}",
-` + "\t" + `Method: endpoint.{{.Method}},
-` + "\t" + `Before: []endpoint.Middleware{},
-` + "\t" + `Control: func(ctx endpoint.Context) http.Handler {
-` + "\t\t" + `return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-` + "\t\t\t" + `// this is the controller body
-` + "\t\t\t" + `w.WriteHeader(http.StatusNotImplemented)
-` + "\t\t" + `})
-` + "\t" + `},
-}`
 
 func main() {
 	flag.Parse()
@@ -46,10 +29,10 @@ func main() {
 		meth = "POST"
 	}
 
-	tmpl := template.Must(template.New("T").Parse(endpointTemplate))
+	stub := template.Must(template.New("T").Parse(endpointTemplate))
+	stubtest := template.Must(template.New("T").Parse(endpointTestTemplate))
 
-	buf := bytes.Buffer{}
-	tmpl.Execute(&buf, struct {
+	data := struct {
 		Package string
 		Name    string
 		Path    string
@@ -59,7 +42,26 @@ func main() {
 		Name:    *point,
 		Path:    *path,
 		Method:  meth,
-	})
+	}
 
-	fmt.Println(buf.String())
+	var dir string
+	var err error
+	if *output == "" {
+		dir, err = os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		dir += "/"
+	} else {
+		dir = *output
+	}
+	fname := strings.ToLower(*point)
+
+	buf := bytes.Buffer{}
+	stub.Execute(&buf, data)
+	ioutil.WriteFile(dir+fname+".go", buf.Bytes(), 0644)
+
+	buf.Reset()
+	stubtest.Execute(&buf, data)
+	ioutil.WriteFile(dir+fname+"_test.go", buf.Bytes(), 0644)
 }
