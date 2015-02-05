@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -15,6 +16,7 @@ var (
 	path   = flag.String("path", "", "url path")
 	method = flag.Bool("post", false, "use POST (default is GET)")
 	output = flag.String("output", "", "output directory (default is current directory")
+	force  = flag.Bool("force", false, "force overwrite of existing files")
 )
 
 func main() {
@@ -57,11 +59,21 @@ func main() {
 	}
 	fname := strings.ToLower(*point)
 
+	fullpath := dir + fname + ".go"
 	buf := bytes.Buffer{}
-	stub.Execute(&buf, data)
-	ioutil.WriteFile(dir+fname+".go", buf.Bytes(), 0644)
+	if _, err := os.Stat(fullpath); err != nil || *force == true {
+		stub.Execute(&buf, data)
+		ioutil.WriteFile(fullpath, buf.Bytes(), 0644)
+	} else {
+		fmt.Printf("'%s' exists; skipping\n", fullpath)
+	}
 
-	buf.Reset()
-	stubtest.Execute(&buf, data)
-	ioutil.WriteFile(dir+fname+"_test.go", buf.Bytes(), 0644)
+	fullpath = dir + fname + "_test.go"
+	if _, err := os.Stat(fullpath); err != nil || *force == true {
+		buf.Reset()
+		stubtest.Execute(&buf, data)
+		ioutil.WriteFile(fullpath, buf.Bytes(), 0644)
+	} else {
+		fmt.Printf("'%s' exists; skipping\n", fullpath)
+	}
 }
