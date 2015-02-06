@@ -65,6 +65,28 @@ func TestPostEndpoint(t *testing.T) {
 	assert.Equal(t, w.Body.String(), "map[Answer:42]", "did not get answer to the ultimate question")
 }
 
+func TestPostEndpointBadJson(t *testing.T) {
+	d := []byte(`{"Answer": "42",}`)
+
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(d))
+	w := httptest.NewRecorder()
+
+	e := Endpoint{
+		Path:   "/foo",
+		Method: POST,
+		Before: []Middleware{addContext},
+		Control: func(ctx Context) http.Handler {
+			return http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(http.StatusBadRequest)
+				})
+		},
+	}
+
+	e.Handler().ServeHTTP(w, r)
+	assert.Equal(t, w.Code, 400, "did not get status 400")
+}
+
 func TestUnknownMethodEndpoint(t *testing.T) {
 	e := Endpoint{
 		Path:   "/foo",
