@@ -1,6 +1,7 @@
 package endpoint
 
 import (
+	"bytes"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -29,11 +30,12 @@ func TestGetFails(t *testing.T) {
 	ctx := make(Context)
 	g := get(ctx, ok{})
 	g.ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 400, "did not get status 400")
+	assert.Equal(t, w.Code, 405, "did not get status 405")
 }
 
 func TestPostWorks(t *testing.T) {
-	r, _ := http.NewRequest("POST", "http://example.com/foo", nil)
+	d := []byte(`{"Answer": "42"}`)
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(d))
 	w := httptest.NewRecorder()
 	ctx := make(Context)
 	g := post(ctx, ok{})
@@ -47,5 +49,5 @@ func TestPostFails(t *testing.T) {
 	ctx := make(Context)
 	g := post(ctx, ok{})
 	g.ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 400, "did not get status 400")
+	assert.Equal(t, w.Code, 405, "did not get status 405")
 }
