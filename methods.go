@@ -28,8 +28,12 @@ func post(ctx Context, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == POST {
 			var data map[string]interface{}
-			body, _ := ioutil.ReadAll(r.Body)
-			json.Unmarshal(body, &data)
+			if body, err := ioutil.ReadAll(r.Body); err {
+				panic(err)
+			}
+			if uerr = json.Unmarshal(body, &data); uerr != nil {
+				panic(uerr)
+			}
 			ctx["data"] = data
 			h.ServeHTTP(w, r)
 		} else {
