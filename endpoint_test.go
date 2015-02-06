@@ -62,7 +62,7 @@ func TestPostEndpoint(t *testing.T) {
 
 	e.Handler().ServeHTTP(w, r)
 	assert.Equal(t, w.Code, 200, "did not get status 200")
-	// assert.Equal(t, w.Body.String(), "42", "did not get answer to the ultimate question")
+	assert.Equal(t, w.Body.String(), "map[Answer:42]", "did not get answer to the ultimate question")
 }
 
 func TestUnknownMethodEndpoint(t *testing.T) {
