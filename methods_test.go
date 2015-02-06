@@ -43,6 +43,15 @@ func TestPostWorks(t *testing.T) {
 	assert.Equal(t, w.Code, 200, "did not get status 200")
 }
 
+func TestEmptyPostFails(t *testing.T) {
+	r, _ := http.NewRequest("POST", "http://example.com/foo", nil)
+	w := httptest.NewRecorder()
+	ctx := make(Context)
+	g := post(ctx, ok{})
+	g.ServeHTTP(w, r)
+	assert.Equal(t, w.Code, 400, "did not get status 400")
+}
+
 func TestPostFails(t *testing.T) {
 	r, _ := http.NewRequest("GET", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
