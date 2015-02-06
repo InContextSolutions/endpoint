@@ -32,9 +32,10 @@ func post(ctx Context, h http.Handler) http.Handler {
 				if err = json.Unmarshal(body, &data); err == nil {
 					ctx["data"] = data
 					h.ServeHTTP(w, r)
+					return
 				}
 			}
-			http.Error(w, "bad request", http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 		} else {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
