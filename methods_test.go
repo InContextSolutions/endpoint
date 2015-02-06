@@ -29,7 +29,7 @@ func TestGetFails(t *testing.T) {
 	ctx := make(Context)
 	g := get(ctx, ok{})
 	g.ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 405, "did not get status 405")
+	assert.Equal(t, w.Code, 400, "did not get status 400")
 }
 
 func TestPostWorks(t *testing.T) {
@@ -47,5 +47,5 @@ func TestPostFails(t *testing.T) {
 	ctx := make(Context)
 	g := post(ctx, ok{})
 	g.ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 405, "did not get status 405")
+	assert.Equal(t, w.Code, 400, "did not get status 400")
 }
