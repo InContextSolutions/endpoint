@@ -2,7 +2,6 @@ package endpoint
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 )
 
