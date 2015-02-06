@@ -17,7 +17,7 @@ func updateContext(ctx endpoint.Context, h http.Handler) http.Handler {
 
 func main() {
 
-	e := endpoint.Endpoint{
+	g := endpoint.Endpoint{
 		Path:   "/foo",
 		Method: endpoint.GET,
 		Before: []endpoint.Middleware{updateContext},
@@ -32,6 +32,22 @@ func main() {
 		},
 	}
 
-	http.Handle(e.Path, e.Handler())
+	p := endpoint.Endpoint{
+		Path:   "/bar",
+		Method: endpoint.POST,
+		Before: []endpoint.Middleware{updateContext},
+		Control: func(ctx endpoint.Context) http.Handler {
+			return http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					log.Println("...in the controller")
+					data, _ := ctx["data"]
+					w.Write([]byte(fmt.Sprintf(
+						"You posted %v", data)))
+				})
+		},
+	}
+
+	http.Handle(g.Path, g.Handler())
+	http.Handle(p.Path, p.Handler())
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
