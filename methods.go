@@ -29,10 +29,10 @@ func post(ctx Context, h http.Handler) http.Handler {
 		if r.Method == POST {
 			var data map[string]interface{}
 			if body, err := ioutil.ReadAll(r.Body); err {
-				panic(err)
+				http.Error(w, "bad request", http.StatusBadRequest)
 			}
 			if uerr = json.Unmarshal(body, &data); uerr != nil {
-				panic(uerr)
+				http.Error(w, "bad request", http.StatusBadRequest)
 			}
 			ctx["data"] = data
 			h.ServeHTTP(w, r)
