@@ -28,14 +28,13 @@ func post(ctx Context, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == POST {
 			var data map[string]interface{}
-			if body, err := ioutil.ReadAll(r.Body); err {
-				http.Error(w, "bad request", http.StatusBadRequest)
+			if body, err := ioutil.ReadAll(r.Body); err == nil {
+				if err = json.Unmarshal(body, &data); err == nil {
+					ctx["data"] = data
+					h.ServeHTTP(w, r)
+				}
 			}
-			if uerr = json.Unmarshal(body, &data); uerr != nil {
-				http.Error(w, "bad request", http.StatusBadRequest)
-			}
-			ctx["data"] = data
-			h.ServeHTTP(w, r)
+			http.Error(w, "bad request", http.StatusBadRequest)
 		} else {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
