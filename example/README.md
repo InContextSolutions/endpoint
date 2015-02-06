@@ -20,6 +20,6 @@ the middleware told me the answer is 42
 ## Post
 
 ```
-$ echo '{"text": "Hello **world**!"}' | curl -d @- http://0.0.0.0:8080/bar
+$ echo '{"text": "Hello **world**!"}' | curl -H "Content-Type:application/json" -d @- http://0.0.0.0:8080/bar
 You posted map[text:Hello **world**!]
 ```

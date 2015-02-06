@@ -32,14 +32,15 @@ func TestGetEndpoint(t *testing.T) {
 	}
 
 	e.Handler().ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 200, "did not get status 200")
-	assert.Equal(t, w.Body.String(), "42", "did not get answer to the ultimate question")
+	assert.Equal(t, 200, w.Code, "did not get status 200")
+	assert.Equal(t, "42", w.Body.String(), "did not get answer to the ultimate question")
 }
 
 func TestPostEndpoint(t *testing.T) {
 	d := []byte(`{"Answer": "42"}`)
 
 	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(d))
+	r.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
 	e := Endpoint{
@@ -61,8 +62,8 @@ func TestPostEndpoint(t *testing.T) {
 	}
 
 	e.Handler().ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 200, "did not get status 200")
-	assert.Equal(t, w.Body.String(), "map[Answer:42]", "did not get answer to the ultimate question")
+	assert.Equal(t, 200, w.Code, "did not get status 200")
+	assert.Equal(t, "map[Answer:42]", w.Body.String(), "did not get answer to the ultimate question")
 }
 
 func TestPostEndpointBadJson(t *testing.T) {
@@ -84,7 +85,7 @@ func TestPostEndpointBadJson(t *testing.T) {
 	}
 
 	e.Handler().ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 400, "did not get status 400")
+	assert.Equal(t, 400, w.Code, "did not get status 400")
 }
 
 func TestUnknownMethodEndpoint(t *testing.T) {

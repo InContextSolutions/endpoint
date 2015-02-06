@@ -26,7 +26,7 @@ func get(ctx Context, h http.Handler) http.Handler {
 func post(ctx Context, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == POST {
-			if r.ContentLength > 0 {
+			if r.ContentLength > 0 && r.Header.Get("Content-Type") == "application/json" {
 				var data map[string]interface{}
 				decoder := json.NewDecoder(r.Body)
 				if err := decoder.Decode(&data); err == nil {
