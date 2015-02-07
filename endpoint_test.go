@@ -51,9 +51,10 @@ func TestPostEndpoint(t *testing.T) {
 			return http.HandlerFunc(
 				func(w http.ResponseWriter, r *http.Request) {
 					data, haskey := ctx["data"]
+					datab, _ := data.([]byte)
 					if haskey {
 						w.WriteHeader(http.StatusOK)
-						w.Write([]byte(fmt.Sprintf("%v", data)))
+						w.Write(datab)
 					} else {
 						w.WriteHeader(http.StatusInternalServerError)
 					}
@@ -63,7 +64,7 @@ func TestPostEndpoint(t *testing.T) {
 
 	e.Handler().ServeHTTP(w, r)
 	assert.Equal(t, 200, w.Code, "did not get status 200")
-	assert.Equal(t, "map[Answer:42]", w.Body.String(), "did not get answer to the ultimate question")
+	assert.Equal(t, d, w.Body.Bytes(), "did not get answer to the ultimate question")
 }
 
 func TestPostEndpointBadJson(t *testing.T) {
