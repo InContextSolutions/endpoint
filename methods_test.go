@@ -1,16 +1,17 @@
 package endpoint
 
 import (
+	"bytes"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-type ok struct {
+type SayOK struct {
 }
 
-func (o ok) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (o SayOK) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
@@ -18,34 +19,66 @@ func TestGetWorks(t *testing.T) {
 	r, _ := http.NewRequest("GET", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
 	ctx := make(Context)
-	g := get(ctx, ok{})
+	g := get(ctx, SayOK{})
 	g.ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 200, "did not get status 200")
+	assert.Equal(t, 200, w.Code, "did not get status 200")
 }
 
-func TestGetFails(t *testing.T) {
+func TestGetBlocksPost(t *testing.T) {
 	r, _ := http.NewRequest("POST", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
 	ctx := make(Context)
-	g := get(ctx, ok{})
+	g := get(ctx, SayOK{})
 	g.ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 405, "did not get status 405")
+	assert.Equal(t, 405, w.Code, "did not get status 405")
 }
 
 func TestPostWorks(t *testing.T) {
+	d := []byte(`{"Answer": "42"}`)
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(d))
+	r.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	ctx := make(Context)
+	g := post(ctx, SayOK{})
+	g.ServeHTTP(w, r)
+	assert.Equal(t, 200, w.Code, "did not get status 200")
+}
+
+func TestPostMissingContentType(t *testing.T) {
+	d := []byte(`{"Answer": "42"}`)
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(d))
+	w := httptest.NewRecorder()
+	ctx := make(Context)
+	g := post(ctx, SayOK{})
+	g.ServeHTTP(w, r)
+	assert.Equal(t, 400, w.Code, "did not get status 400")
+}
+
+func TestPostWrongContentType(t *testing.T) {
+	d := []byte(`{"Answer": "42"}`)
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(d))
+	r.Header.Set("Content-Type", "gooba/gabba")
+	w := httptest.NewRecorder()
+	ctx := make(Context)
+	g := post(ctx, SayOK{})
+	g.ServeHTTP(w, r)
+	assert.Equal(t, 400, w.Code, "did not get status 400")
+}
+
+func TestEmptyPostFails(t *testing.T) {
 	r, _ := http.NewRequest("POST", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
 	ctx := make(Context)
-	g := post(ctx, ok{})
+	g := post(ctx, SayOK{})
 	g.ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 200, "did not get status 200")
+	assert.Equal(t, 400, w.Code, "did not get status 400")
 }
 
-func TestPostFails(t *testing.T) {
+func TestPostBlocksGet(t *testing.T) {
 	r, _ := http.NewRequest("GET", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
 	ctx := make(Context)
-	g := post(ctx, ok{})
+	g := post(ctx, SayOK{})
 	g.ServeHTTP(w, r)
-	assert.Equal(t, w.Code, 405, "did not get status 405")
+	assert.Equal(t, 405, w.Code, "did not get status 405")
 }
