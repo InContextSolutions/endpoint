@@ -40,7 +40,7 @@ func run{{.Name}}() *httptest.ResponseRecorder {
 
 func Test{{.Name}}(t *testing.T) {
 ` + "\t" + `w := run{{.Name}}()
-` + "\t" + `assert.Equal(t, w.Code, -1, "status code check not implemented")
+` + "\t" + `assert.Equal(t, -1, w.Code, "status code check not implemented")
 ` + "\t" + `t.Error("test not implemented")
 }
 
