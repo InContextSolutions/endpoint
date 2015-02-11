@@ -9,11 +9,8 @@ import (
 	"testing"
 )
 
-func TestGetEndpoint(t *testing.T) {
-	r, _ := http.NewRequest("GET", "http://example.com/foo", nil)
-	w := httptest.NewRecorder()
-
-	e := Endpoint{
+var (
+	ge = Endpoint{
 		Path:   "/foo",
 		Method: GET,
 		Before: []Middleware{addContext},
@@ -31,19 +28,7 @@ func TestGetEndpoint(t *testing.T) {
 		},
 	}
 
-	e.Handler().ServeHTTP(w, r)
-	assert.Equal(t, 200, w.Code, "did not get status 200")
-	assert.Equal(t, "42", w.Body.String(), "did not get answer to the ultimate question")
-}
-
-func TestPostEndpoint(t *testing.T) {
-	d := []byte(`{"Answer": "42"}`)
-
-	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(d))
-	r.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	e := Endpoint{
+	pe = Endpoint{
 		Path:   "/foo",
 		Method: POST,
 		Before: []Middleware{addContext},
@@ -62,15 +47,28 @@ func TestPostEndpoint(t *testing.T) {
 		},
 	}
 
-	e.Handler().ServeHTTP(w, r)
+	theAnswer = []byte(`{"Answer": "42"}`)
+)
+
+func TestGetEndpoint(t *testing.T) {
+	r, _ := http.NewRequest("GET", "http://example.com/foo", nil)
+	w := httptest.NewRecorder()
+	ge.Handler().ServeHTTP(w, r)
 	assert.Equal(t, 200, w.Code, "did not get status 200")
-	assert.Equal(t, d, w.Body.Bytes(), "did not get answer to the ultimate question")
+	assert.Equal(t, "42", w.Body.String(), "did not get answer to the ultimate question")
+}
+
+func TestPostEndpoint(t *testing.T) {
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(theAnswer))
+	r.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	pe.Handler().ServeHTTP(w, r)
+	assert.Equal(t, 200, w.Code, "did not get status 200")
+	assert.Equal(t, theAnswer, w.Body.Bytes(), "did not get answer to the ultimate question")
 }
 
 func TestPostEndpointBadJson(t *testing.T) {
-	d := []byte(`{"Answer": "42",}`)
-
-	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(d))
+	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(theAnswer))
 	w := httptest.NewRecorder()
 
 	e := Endpoint{
