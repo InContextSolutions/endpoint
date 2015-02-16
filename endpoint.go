@@ -33,7 +33,7 @@ func (e Endpoint) Handler() httprouter.Handle {
 	}
 
 	// read body for PUT & POST
-	if e.Method == "PUT" || e.Method == "POST" {
+	if e.Method == "PUT" || e.Method == "POST" || e.Method == "PATCH" {
 		final = readBody()(ctx, final)
 	}
 
