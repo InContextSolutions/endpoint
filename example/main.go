@@ -19,7 +19,7 @@ func updateContext(ctx endpoint.Context, h httprouter.Handle) httprouter.Handle 
 func main() {
 
 	g := endpoint.Endpoint{
-		Path:   "/foo",
+		Path:   "/foo/:bar",
 		Method: "GET",
 		Before: []endpoint.Middleware{updateContext},
 		Control: func(ctx endpoint.Context) httprouter.Handle {
@@ -27,14 +27,13 @@ func main() {
 				log.Println("...in the controller")
 				log.Println("params:", p)
 				answer, _ := ctx["the answer"]
-				w.Write([]byte(fmt.Sprintf(
-					"the middleware told me the answer is %v", answer)))
+				w.Write([]byte(fmt.Sprintf("the answer is %v\n", answer)))
 			}
 		},
 	}
 
 	p := endpoint.Endpoint{
-		Path:   "/bar",
+		Path:   "/bar/:baz",
 		Method: "POST",
 		Before: []endpoint.Middleware{updateContext},
 		Control: func(ctx endpoint.Context) httprouter.Handle {
@@ -42,8 +41,7 @@ func main() {
 				log.Println("...in the controller")
 				log.Println("params:", p)
 				data, _ := ctx["data"]
-				w.Write([]byte(fmt.Sprintf(
-					"You posted %v", data)))
+				w.Write([]byte(fmt.Sprintf("You posted %s\n", data)))
 			}
 		},
 	}
