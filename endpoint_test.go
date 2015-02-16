@@ -1,104 +1,29 @@
 package endpoint
 
 import (
-	"bytes"
-	"fmt"
-	"github.com/stretchr/testify/assert"
+	"github.com/julienschmidt/httprouter"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
-var (
-	ge = Endpoint{
-		Path:   "/foo",
-		Method: GET,
-		Before: []Middleware{addContext},
-		Control: func(ctx Context) http.Handler {
-			return http.HandlerFunc(
-				func(w http.ResponseWriter, r *http.Request) {
-					answer, ok := ctx["the answer"]
-					if ok {
-						w.WriteHeader(http.StatusOK)
-						w.Write([]byte(fmt.Sprintf("%v", answer)))
-					} else {
-						w.WriteHeader(http.StatusInternalServerError)
-					}
-				})
-		},
+func TestSmokeEndpoint(t *testing.T) {
+
+	mw := func(ctx Context, h httprouter.Handle) httprouter.Handle {
+		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+			h(w, r, p)
+		}
 	}
-
-	pe = Endpoint{
-		Path:   "/foo",
-		Method: POST,
-		Before: []Middleware{addContext},
-		Control: func(ctx Context) http.Handler {
-			return http.HandlerFunc(
-				func(w http.ResponseWriter, r *http.Request) {
-					data, haskey := ctx["data"]
-					datab, _ := data.([]byte)
-					if haskey {
-						w.WriteHeader(http.StatusOK)
-						w.Write(datab)
-					} else {
-						w.WriteHeader(http.StatusInternalServerError)
-					}
-				})
-		},
-	}
-
-	theAnswer = []byte(`{"Answer": "42"}`)
-)
-
-func TestGetEndpoint(t *testing.T) {
-	r, _ := http.NewRequest("GET", "http://example.com/foo", nil)
-	w := httptest.NewRecorder()
-	ge.Handler().ServeHTTP(w, r)
-	assert.Equal(t, 200, w.Code, "did not get status 200")
-	assert.Equal(t, "42", w.Body.String(), "did not get answer to the ultimate question")
-}
-
-func TestPostEndpoint(t *testing.T) {
-	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(theAnswer))
-	r.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	pe.Handler().ServeHTTP(w, r)
-	assert.Equal(t, 200, w.Code, "did not get status 200")
-	assert.Equal(t, theAnswer, w.Body.Bytes(), "did not get answer to the ultimate question")
-}
-
-func TestPostEndpointBadJson(t *testing.T) {
-	r, _ := http.NewRequest("POST", "http://example.com/foo", bytes.NewReader(theAnswer))
-	w := httptest.NewRecorder()
 
 	e := Endpoint{
-		Path:   "/foo",
-		Method: POST,
-		Before: []Middleware{addContext},
-		Control: func(ctx Context) http.Handler {
-			return http.HandlerFunc(
-				func(w http.ResponseWriter, r *http.Request) {
-					w.WriteHeader(http.StatusBadRequest)
-				})
+		Path:         "/foo",
+		Method:       "PUT",
+		Before:       []Middleware{mw},
+		RequiredArgs: []string{"param1"},
+		OptionalArgs: []string{"param2"},
+		Control: func(ctx Context) httprouter.Handle {
+			return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+			}
 		},
 	}
-
-	e.Handler().ServeHTTP(w, r)
-	assert.Equal(t, 400, w.Code, "did not get status 400")
-}
-
-func TestUnknownMethodEndpoint(t *testing.T) {
-	e := Endpoint{
-		Path:   "/foo",
-		Method: "WHOOP",
-		Before: []Middleware{addContext},
-		Control: func(ctx Context) http.Handler {
-			return http.HandlerFunc(
-				func(w http.ResponseWriter, r *http.Request) {
-					w.WriteHeader(http.StatusInternalServerError)
-				})
-		},
-	}
-
-	assert.Panics(t, func() { e.Handler() }, "should panic")
+	e.Handler()
 }

@@ -1,41 +1,45 @@
 package endpoint
 
-import (
-	"fmt"
-	"net/http"
-)
+import "github.com/julienschmidt/httprouter"
 
 // Context is maps strings to arbitrary types
 type Context map[string]interface{}
 
-// Controller is a function that accepts a context and returns a handler.
-type Controller func(Context) http.Handler
+// Controller is a function that accepts a context and returns a handle.
+type Controller func(Context) httprouter.Handle
 
-// Middleware is a function that accepts a context and a handler and returns a handler.
-type Middleware func(Context, http.Handler) http.Handler
+// Middleware is a function that accepts a context and a handler and returns a handle.
+type Middleware func(Context, httprouter.Handle) httprouter.Handle
 
 // Endpoint is an endpoint on the server.
 type Endpoint struct {
-	Path    string       // Path is the is the url path.
-	Method  string       // Method is the request method.
-	Before  []Middleware // Middleware stack
-	Control Controller   // Control handles the final portion of the request
+	Path         string
+	Method       string
+	Before       []Middleware
+	RequiredArgs []string
+	OptionalArgs []string
+	Control      Controller
 }
 
 // Handler joins the middleware with the controller.
-func (e Endpoint) Handler() http.Handler {
-	var mw []Middleware
+func (e Endpoint) Handler() httprouter.Handle {
 
-	switch e.Method {
-	case GET:
-		mw = append(mw, get)
-	case POST:
-		mw = append(mw, post)
-	default:
-		err := fmt.Errorf("`%v` is not a supported http method", e.Method)
-		panic(err)
+	ctx := make(Context)
+	final := e.Control(ctx)
+
+	// parse out query params
+	if len(e.RequiredArgs) > 0 || len(e.OptionalArgs) > 0 {
+		final = queryParams(e.RequiredArgs, e.OptionalArgs)(ctx, final)
 	}
 
-	mw = append(mw, e.Before...)
-	return handler{before: mw, control: e.Control}
+	// read body for PUT & POST
+	if e.Method == "PUT" || e.Method == "POST" {
+		final = readBody()(ctx, final)
+	}
+
+	for i := len(e.Before) - 1; i >= 0; i-- {
+		final = e.Before[i](ctx, final)
+	}
+
+	return final
 }
