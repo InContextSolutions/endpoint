@@ -1,6 +1,9 @@
 package endpoint
 
-import "github.com/julienschmidt/httprouter"
+import (
+	"github.com/julienschmidt/httprouter"
+	"net/http"
+)
 
 // Context is maps strings to arbitrary types
 type Context map[string]interface{}
@@ -24,22 +27,26 @@ type Endpoint struct {
 // Handler joins the middleware with the controller.
 func (e Endpoint) Handler() httprouter.Handle {
 
-	ctx := make(Context)
-	final := e.Control(ctx)
+	fn := func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	// parse out query params
-	if len(e.RequiredArgs) > 0 || len(e.OptionalArgs) > 0 {
-		final = queryParams(e.RequiredArgs, e.OptionalArgs)(ctx, final)
+		ctx := make(Context)
+		final := e.Control(ctx)
+
+		// parse out query params
+		if len(e.RequiredArgs) > 0 || len(e.OptionalArgs) > 0 {
+			final = queryParams(e.RequiredArgs, e.OptionalArgs)(ctx, final)
+		}
+
+		// read body for PUT & POST
+		if e.Method == "PUT" || e.Method == "POST" || e.Method == "PATCH" {
+			final = readBody()(ctx, final)
+		}
+
+		for i := len(e.Before) - 1; i >= 0; i-- {
+			final = e.Before[i](ctx, final)
+		}
+
+		final(w, r, p)
 	}
-
-	// read body for PUT & POST
-	if e.Method == "PUT" || e.Method == "POST" || e.Method == "PATCH" {
-		final = readBody()(ctx, final)
-	}
-
-	for i := len(e.Before) - 1; i >= 0; i-- {
-		final = e.Before[i](ctx, final)
-	}
-
-	return final
+	return fn
 }
