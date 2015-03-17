@@ -1,15 +1,14 @@
 package endpoint
 
 import (
-	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
 func queryParams(required []string, optional []string) Middleware {
 
-	fn := func(ctx Context, h httprouter.Handle) httprouter.Handle {
+	fn := func(ctx Context, h http.HandlerFunc) http.HandlerFunc {
 
-		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		return func(w http.ResponseWriter, r *http.Request) {
 
 			qryParams := r.URL.Query()
 
@@ -32,7 +31,7 @@ func queryParams(required []string, optional []string) Middleware {
 				ctx[key] = val
 			}
 
-			h(w, r, p)
+			h(w, r)
 		}
 	}
 
