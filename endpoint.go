@@ -1,15 +1,17 @@
 package endpoint
 
-import "github.com/julienschmidt/httprouter"
+import (
+	"net/http"
+)
 
 // Context is maps strings to arbitrary types
 type Context map[string]interface{}
 
 // Controller is a function that accepts a context and returns a handle.
-type Controller func(Context) httprouter.Handle
+type Controller func(Context) http.HandlerFunc
 
 // Middleware is a function that accepts a context and a handler and returns a handle.
-type Middleware func(Context, httprouter.Handle) httprouter.Handle
+type Middleware func(Context, http.HandlerFunc) http.HandlerFunc
 
 // Endpoint is an endpoint on the server.
 type Endpoint struct {
@@ -22,7 +24,7 @@ type Endpoint struct {
 }
 
 // Handler joins the middleware with the controller.
-func (e Endpoint) Handler() httprouter.Handle {
+func (e Endpoint) Handler() http.HandlerFunc {
 
 	ctx := make(Context)
 	final := e.Control(ctx)
