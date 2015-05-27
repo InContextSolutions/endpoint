@@ -11,8 +11,8 @@ func readBody() Middleware {
 		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 			if r.Header.Get("Content-Type") != "application/json" {
-				w.Write([]byte(`{"message":"content type must be application/json"}`))
 				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(`{"message":"content type must be application/json"}`))
 				return
 			}
 
