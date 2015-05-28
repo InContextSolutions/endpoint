@@ -3,19 +3,18 @@ package endpoint
 import (
 	"github.com/julienschmidt/httprouter"
 	"io/ioutil"
+	"log"
 	"net/http"
-    "log"
 )
 
 func readBody() Middleware {
 	fn := func(ctx Context, h httprouter.Handle) httprouter.Handle {
 		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-			if r.Header.Get("Content-Type") != "application/json" {
-                
-                log.Println(r.Header.Get("Content-Type"))
-  				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte(`{"message":"content type must be application/json"}`))
+			if r.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
+
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(`{"message":"content type must be application/json; charset=UTF-8"}`))
 				return
 			}
 
