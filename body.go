@@ -14,6 +14,7 @@ func readBody() Middleware {
             log.Println(r.Header.Get("Content-Type"))
 			if r.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
 
+                log.Println(r.Header.Get("Content-Type") != "application/json; charset=UTF-8")
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte(`{"message":"content type must be application/json; charset=UTF-8"}`))
 				return
