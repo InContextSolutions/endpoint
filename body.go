@@ -4,6 +4,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"io/ioutil"
 	"net/http"
+    "log"
 )
 
 func readBody() Middleware {
@@ -11,7 +12,9 @@ func readBody() Middleware {
 		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 			if r.Header.Get("Content-Type") != "application/json" {
-				w.WriteHeader(http.StatusBadRequest)
+                
+                log.Println(r.Header.Get("Content-Type"))
+  				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte(`{"message":"content type must be application/json"}`))
 				return
 			}
