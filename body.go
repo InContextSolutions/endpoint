@@ -3,7 +3,6 @@ package endpoint
 import (
 	"github.com/julienschmidt/httprouter"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
