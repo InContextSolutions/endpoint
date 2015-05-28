@@ -4,12 +4,14 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"io/ioutil"
 	"net/http"
+    "log"
 )
 
 func readBody() Middleware {
 	fn := func(ctx Context, h httprouter.Handle) httprouter.Handle {
 		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
+            log.Println(r.Header.Get("Content-Type"))
 			if r.Header.Get("Content-Type") != "application/json; charset=UTF-8" {
 
 				w.WriteHeader(http.StatusBadRequest)
