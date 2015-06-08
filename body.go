@@ -11,13 +11,6 @@ func readBody() Middleware {
 		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 
-			if r.ContentLength > 0 {
-				if data, err := ioutil.ReadAll(r.Body); err == nil {
-					ctx["data"] = data
-					h(w, r, p)
-					return
-				}
-			}
 
 			h(w, r, p)
 			return
