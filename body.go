@@ -19,8 +19,7 @@ func readBody() Middleware {
 				}
 			}
 
-			w.Write([]byte(`{"message":"body is malformed or missing"}`))
-			w.WriteHeader(http.StatusBadRequest)
+			h(w, r, p)
 			return
 		}
 	}
